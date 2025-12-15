@@ -57,6 +57,8 @@ export interface SpotifyPlaylistTracksResponse {
 }
 
 export interface SpotifyAudioFeatures {
+  // Spotify returns the track ID alongside the audio features
+  id?: string
   danceability: number
   energy: number
   key: number
