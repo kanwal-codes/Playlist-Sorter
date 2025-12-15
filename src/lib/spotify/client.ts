@@ -218,6 +218,38 @@ export class SpotifyClient {
     return allTracks
   }
 
+  // Create a new playlist for the current user
+  async createPlaylist(
+    userId: string,
+    name: string,
+    description = '',
+    isPublic = false
+  ): Promise<{ id: string; external_urls: { spotify: string } }> {
+    return this.request<{ id: string; external_urls: { spotify: string } }>(
+      `/users/${userId}/playlists`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          name,
+          description,
+          public: isPublic,
+        }),
+      }
+    )
+  }
+
+  // Add tracks (URIs) to a playlist in a single request (max 100 per call)
+  async addTracksToPlaylist(
+    playlistId: string,
+    uris: string[]
+  ): Promise<void> {
+    if (!uris.length) return
+    await this.request(`/playlists/${playlistId}/tracks`, {
+      method: 'POST',
+      body: JSON.stringify({ uris }),
+    })
+  }
+
   async reorderPlaylistTracks(
     playlistId: string,
     rangeStart: number,

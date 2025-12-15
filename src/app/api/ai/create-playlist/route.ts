@@ -106,18 +106,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No tracks matched the filters' }, { status: 400 })
     }
 
-    // Create playlist
-    const createRes = await client.request<{
-      id: string
-      external_urls: { spotify: string }
-    }>(`/users/${user.spotifyUserId}/playlists`, {
-      method: 'POST',
-      body: JSON.stringify({
-        name: body.name,
-        description: body.description || 'Created by AI from core playlist',
-        public: false,
-      }),
-    })
+    // Create playlist using client helper (avoids private request access)
+    const createRes = await client.createPlaylist(
+      user.spotifyUserId,
+      body.name,
+      body.description || 'Created by AI from core playlist',
+      false
+    )
 
     const newPlaylistId = createRes.id
 
@@ -125,10 +120,7 @@ export async function POST(request: Request) {
     const uris = filtered.map(f => `spotify:track:${f.track!.id}`)
     for (let i = 0; i < uris.length; i += 100) {
       const chunk = uris.slice(i, i + 100)
-      await client.request(`/playlists/${newPlaylistId}/tracks`, {
-        method: 'POST',
-        body: JSON.stringify({ uris: chunk }),
-      })
+      await client.addTracksToPlaylist(newPlaylistId, chunk)
     }
 
     return NextResponse.json({
