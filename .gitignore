@@ -4,23 +4,40 @@
 /node_modules
 /.pnp
 .pnp.js
+.npmrc
+.yarnrc*
+.pnpmfile.cjs
 
 # testing
 /coverage
+/test-results
+/playwright-report
 
 # next.js
 /.next/
 /out/
+.turbo
+dist
 
 # production
 /build
 
 # misc
 .DS_Store
+.idea/
+.vscode/
+.cursor/
+terminals/
+Thumbs.db
+*.log
+*.swp
 *.pem
 .env.bak
 .env.local.bak
 .env.test
+.env.*
+*.local.json
+*.secret.*
 
 # debug
 npm-debug.log*
@@ -30,6 +47,7 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.vercel
 
 # vercel
 .vercel
@@ -43,6 +61,10 @@ next-env.d.ts
 
 # project docs (local only)
 /docs
+/docs/recovery
+ALL_PLAYLIST_TRACKS.*
+DELETED_*
+prisma/dev.db
 
 
 
