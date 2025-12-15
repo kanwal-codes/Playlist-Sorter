@@ -3,6 +3,9 @@ import { cookies } from 'next/headers'
 import { getUserBySpotifyId } from '@/lib/db/queries'
 import { SpotifyClient } from '@/lib/spotify/client'
 import { generateRecommendations } from '@/lib/ai/recommendations'
+import { validateSpotifyPlaylistId } from '@/lib/utils/validation'
+import { verifyPlaylistOwnership, sanitizeError } from '@/lib/utils/security'
+import { checkRateLimit, getClientIdentifier } from '@/lib/utils/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,11 +20,6 @@ export async function GET(request: Request) {
         { status: 400 }
       )
     }
-
-    // Input validation
-    const { validateSpotifyPlaylistId } = await import('@/lib/utils/validation')
-    const { verifyPlaylistOwnership, sanitizeError } = await import('@/lib/utils/security')
-    const { checkRateLimit, getClientIdentifier } = await import('@/lib/utils/rate-limit')
 
     let validatedPlaylistId: string
     try {
