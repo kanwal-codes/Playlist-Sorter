@@ -67,7 +67,7 @@ export async function GET(request: Request) {
 
     // CRITICAL: Verify playlist ownership
     const playlist = await client.getPlaylist(validatedPlaylistId)
-    if (!verifyPlaylistOwnership(playlist, user.spotifyUserId)) {
+    if (!(await verifyPlaylistOwnership(playlist, user.spotifyUserId))) {
       return NextResponse.json(
         { error: 'Unauthorized: You do not have access to this playlist' },
         { status: 403 }

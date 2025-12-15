@@ -42,6 +42,8 @@ export interface SpotifyTrack {
       images: Array<{ url: string }>
       release_date: string
     }
+    disc_number?: number
+    track_number?: number
     duration_ms: number
     popularity: number
     external_urls: {
