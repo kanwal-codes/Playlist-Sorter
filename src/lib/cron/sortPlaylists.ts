@@ -5,6 +5,7 @@ import {
   getPlaylistsByUserId,
 } from '../db/queries'
 import { SpotifyClient } from '../spotify/client'
+import { SpotifyTrack as SpotifyPlaylistTrack } from '../spotify/types'
 
 // Helper function to parse release date (handles YYYY, YYYY-MM, YYYY-MM-DD formats)
 function parseReleaseDate(releaseDate: string): Date {
