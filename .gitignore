@@ -35,7 +35,7 @@ Thumbs.db
 .env.bak
 .env.local.bak
 .env.test
-.env.*
+*.env.*
 *.local.json
 *.secret.*
 
