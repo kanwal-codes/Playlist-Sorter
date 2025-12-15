@@ -1,0 +1,14 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/sort-playlists",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
+
+
+
+
+
+

@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(uuid())
+  spotifyUserId     String    @unique @map("spotify_user_id")
+  email             String?
+  displayName       String?   @map("display_name")
+  accessToken       String    @map("access_token") // Encrypted
+  refreshToken      String    @map("refresh_token") // Encrypted
+  tokenExpiresAt    DateTime  @map("token_expires_at")
+  autoSortEnabled   Boolean   @default(true) @map("auto_sort_enabled")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  playlists         Playlist[]
+  sortLogs          SortLog[]
+
+  @@map("users")
+}
+
+model Playlist {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  spotifyPlaylistId String    @unique @map("spotify_playlist_id")
+  name              String
+  autoSortEnabled   Boolean   @default(true) @map("auto_sort_enabled")
+  sortOrder         String    @default("date_added_desc") @map("sort_order")
+  lastSortedAt      DateTime? @map("last_sorted_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sortLogs          SortLog[]
+  recommendations   Recommendation[]
+
+  @@map("playlists")
+}
+
+model SortLog {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  playlistId    String?   @map("playlist_id")
+  status        String    // 'success', 'failed', 'partial'
+  tracksSorted  Int?      @map("tracks_sorted")
+  errorMessage  String?   @map("error_message")
+  sortedAt      DateTime  @default(now()) @map("sorted_at")
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playlist      Playlist? @relation(fields: [playlistId], references: [id], onDelete: SetNull)
+
+  @@map("sort_logs")
+}
+
+model Recommendation {
+  id            String    @id @default(uuid())
+  playlistId    String    @map("playlist_id")
+  recommendations Json    // Array of recommendation objects
+  generatedAt   DateTime  @default(now()) @map("generated_at")
+  expiresAt     DateTime  @map("expires_at")
+
+  playlist      Playlist  @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+  @@map("recommendations")
+}
+
+// Track tags for AI classification (situations, moods, language)
+model TrackTag {
+  trackId     String   @id @map("track_id")
+  situations  String[] // e.g., ["gym", "study"]
+  moods       String[] // e.g., ["energetic", "happy"]
+  language    String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("track_tags")
+}
+
