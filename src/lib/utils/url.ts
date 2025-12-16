@@ -52,9 +52,21 @@ export function getAllowedOrigins(): string[] {
     origins.push(process.env.NEXT_PUBLIC_APP_URL)
   }
 
-  // Add Vercel URL if available
+  // Add Vercel URL if available (handle both with and without protocol)
   if (process.env.VERCEL_URL) {
-    origins.push(`https://${process.env.VERCEL_URL}`)
+    const vercelUrl = process.env.VERCEL_URL.startsWith('http')
+      ? process.env.VERCEL_URL
+      : `https://${process.env.VERCEL_URL}`
+    origins.push(vercelUrl)
+  }
+
+  // Add Vercel production URL pattern (common Vercel deployment URLs)
+  if (process.env.VERCEL) {
+    // Vercel sets VERCEL_URL automatically, but also check for custom domain
+    const vercelUrl = process.env.VERCEL_URL
+    if (vercelUrl && !vercelUrl.startsWith('http')) {
+      origins.push(`https://${vercelUrl}`)
+    }
   }
 
   // In development, add localhost variants

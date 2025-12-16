@@ -66,14 +66,35 @@ export async function verifyPlaylistOwnership(
  */
 export function validateOrigin(request: Request, allowedOrigins: string[]): boolean {
   const origin = request.headers.get('origin')
+  const referer = request.headers.get('referer')
+  const requestUrl = new URL(request.url)
+  const requestOrigin = `${requestUrl.protocol}//${requestUrl.host}`
+  
+  // Same-origin requests (no Origin header) - allow if referer matches request origin
   if (!origin) {
-    // Same-origin requests don't have Origin header
-    // In production, we should be more strict, but for API routes this is acceptable
-    return true
+    if (referer) {
+      try {
+        const refererUrl = new URL(referer)
+        const refererOrigin = `${refererUrl.protocol}//${refererUrl.host}`
+        // Allow if referer origin matches request origin (same-origin request)
+        if (refererOrigin === requestOrigin) {
+          return true
+        }
+      } catch {
+        // Invalid referer URL, continue to check allowed origins
+      }
+    }
+    // If no origin and no valid referer, check if request origin is in allowed list
+    return allowedOrigins.includes(requestOrigin)
   }
   
   // Check against allowed origins
   if (allowedOrigins.length > 0 && allowedOrigins.includes(origin)) {
+    return true
+  }
+  
+  // Also check if origin matches request origin (same-origin)
+  if (origin === requestOrigin) {
     return true
   }
   
