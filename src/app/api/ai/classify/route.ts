@@ -6,7 +6,7 @@ import { prisma } from '@/lib/db/client'
 import { sanitizeError, validateOrigin } from '@/lib/utils/security'
 import { checkRateLimit, getClientIdentifier } from '@/lib/utils/rate-limit'
 import { getAllowedOrigins } from '@/lib/utils/url'
-import OpenAI from 'openai'
+import { getOpenAI } from '@/lib/ai/openai'
 
 // Controlled vocabularies
 const SITUATIONS = ['gym','party','chill','study','sad','happy','roadtrip','focus','romantic','family','driving']
@@ -105,7 +105,7 @@ Output format:
 { "tracks": [ { "track_id": "...", "language": "...", "situations": ["..."], "moods": ["..."] } ] }
 Only return JSON, no extra text.`
 
-    const openai = new OpenAI()
+    const openai = getOpenAI()
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],

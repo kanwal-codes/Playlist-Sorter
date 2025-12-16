@@ -1,4 +1,4 @@
-import { openai } from './openai'
+import { getOpenAI } from './openai'
 import { SpotifyClient } from '../spotify/client'
 import { SpotifyTrack, SpotifyAudioFeatures } from '../spotify/types'
 import {
@@ -124,6 +124,7 @@ Focus on:
 - Popular songs that listeners would enjoy`
 
   try {
+    const openai = getOpenAI()
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
