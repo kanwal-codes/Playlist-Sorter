@@ -99,13 +99,48 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Vercel
 
-1. Push your code to GitHub
-2. Import project in Vercel
-3. Add all environment variables in Vercel dashboard
-4. Update `SPOTIFY_REDIRECT_URI` to your production URL
-5. Deploy!
+The application is optimized for Vercel serverless deployment. Follow these steps:
 
-The cron job will automatically be set up to run at midnight UTC.
+1. **Push your code to GitHub**
+   ```bash
+   git push origin main
+   ```
+
+2. **Import project in Vercel**
+   - Go to [Vercel Dashboard](https://vercel.com/dashboard)
+   - Click "Add New Project"
+   - Import your GitHub repository
+   - Vercel will auto-detect Next.js
+
+3. **Configure Environment Variables in Vercel**
+   
+   Add these **required** environment variables in Vercel dashboard:
+   - `SPOTIFY_CLIENT_ID` - Your Spotify app client ID
+   - `SPOTIFY_CLIENT_SECRET` - Your Spotify app client secret
+   - `DATABASE_URL` - PostgreSQL connection string (Supabase/Neon recommended)
+   - `ENCRYPTION_KEY` - Random 32-character hex string (generate with: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
+   - `CRON_SECRET` - Random secret for cron job authentication
+   
+   **Optional** environment variables:
+   - `SPOTIFY_REDIRECT_URI` - Auto-detected from `VERCEL_URL`, but can be set explicitly (e.g., `https://your-app.vercel.app/api/auth/callback`)
+   - `NEXT_PUBLIC_APP_URL` - Your production URL (e.g., `https://your-app.vercel.app`) - auto-detected if not set
+   - `OPENAI_API_KEY` - For AI recommendations feature
+   - `NEXTAUTH_SECRET` - For session management (if using NextAuth)
+   - `NEXTAUTH_URL` - Auto-detected from `VERCEL_URL`
+
+4. **Update Spotify App Redirect URI**
+   - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+   - Edit your app settings
+   - Add redirect URI: `https://your-app.vercel.app/api/auth/callback`
+   - Save changes
+
+5. **Deploy!**
+   - Vercel will automatically deploy on every push to `main`
+   - The cron job is configured in `vercel.json` to run at midnight UTC
+
+**Note:** The application automatically detects the production URL using Vercel's `VERCEL_URL` environment variable, so you don't need to manually set `SPOTIFY_REDIRECT_URI` unless you want to override it.
+
+**Cron Job:** The cron job at `/api/cron/sort-playlists` is automatically configured via `vercel.json` and will run daily at midnight UTC. Make sure `CRON_SECRET` is set in your Vercel environment variables.
 
 ## Project Structure
 

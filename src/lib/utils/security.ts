@@ -13,10 +13,12 @@ if (!ENCRYPTION_KEY || ENCRYPTION_KEY === 'default-key-change-in-production') {
     'Generate a secure key using: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
   )
 }
+// Type assertion: ENCRYPTION_KEY is guaranteed to be defined after the check above
+const KEY = ENCRYPTION_KEY as string
 const ALGORITHM = 'aes-256-cbc'
 
 function getKey(): Buffer {
-  return crypto.createHash('sha256').update(ENCRYPTION_KEY).digest()
+  return crypto.createHash('sha256').update(KEY).digest()
 }
 
 export function encrypt(text: string): string {
@@ -66,15 +68,21 @@ export function validateOrigin(request: Request, allowedOrigins: string[]): bool
   const origin = request.headers.get('origin')
   if (!origin) {
     // Same-origin requests don't have Origin header
+    // In production, we should be more strict, but for API routes this is acceptable
     return true
   }
   
-  // In production, validate against allowed origins
-  if (process.env.NODE_ENV === 'production') {
-    return allowedOrigins.includes(origin)
+  // Check against allowed origins
+  if (allowedOrigins.length > 0 && allowedOrigins.includes(origin)) {
+    return true
   }
   
-  // In development, allow localhost
+  // In production, be strict - only allow configured origins
+  if (process.env.NODE_ENV === 'production') {
+    return false
+  }
+  
+  // In development, allow localhost variants
   return origin.includes('localhost') || origin.includes('127.0.0.1')
 }
 

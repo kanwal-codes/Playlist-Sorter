@@ -15,10 +15,28 @@ export async function GET(request: Request) {
     }
 
     // Verify this is a Vercel Cron request
+    // Vercel automatically sets the Authorization header with CRON_SECRET
     const authHeader = headers().get('authorization')
-    const isVercelCron = authHeader === `Bearer ${process.env.CRON_SECRET}`
+    const cronSecret = process.env.CRON_SECRET
     
-    if (!isVercelCron) {
+    // In production, require CRON_SECRET to be set
+    if (process.env.NODE_ENV === 'production' && !cronSecret) {
+      return NextResponse.json(
+        { error: 'CRON_SECRET must be set in production' },
+        { status: 500 }
+      )
+    }
+    
+    // Verify the authorization header matches CRON_SECRET
+    // Format: "Bearer <CRON_SECRET>"
+    const isVercelCron = cronSecret && authHeader === `Bearer ${cronSecret}`
+    
+    // In development, allow manual testing (but warn)
+    if (process.env.NODE_ENV === 'development') {
+      if (!isVercelCron) {
+        console.warn('⚠️  Cron endpoint called without proper authorization (development mode)')
+      }
+    } else if (!isVercelCron) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

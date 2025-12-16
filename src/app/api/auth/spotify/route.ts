@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getSpotifyAuthUrl } from '@/lib/spotify/auth'
 import { storeState } from '@/lib/auth/state-store'
+import { getRedirectUri } from '@/lib/utils/url'
 
 export async function GET(request: Request) {
   try {
-    const envRedirect = process.env.SPOTIFY_REDIRECT_URI
-    const baseUrl = new URL(request.url).origin
-    const redirectUri = envRedirect || `${baseUrl}/api/auth/callback`
+    // Use environment variable if set (for explicit configuration)
+    // Otherwise, auto-detect from request (works for both local and Vercel)
+    const redirectUri = process.env.SPOTIFY_REDIRECT_URI || getRedirectUri(request)
 
     // Generate a state token for CSRF protection
     const state = crypto.randomUUID()

@@ -4,6 +4,7 @@ import { getUserBySpotifyId } from '@/lib/db/queries'
 import { SpotifyClient } from '@/lib/spotify/client'
 import { prisma } from '@/lib/db/client'
 import { sanitizeError, validateOrigin } from '@/lib/utils/security'
+import { getAllowedOrigins } from '@/lib/utils/url'
 import { checkRateLimit, getClientIdentifier } from '@/lib/utils/rate-limit'
 
 type CreatePayload = {
@@ -18,7 +19,7 @@ type CreatePayload = {
 
 export async function POST(request: Request) {
   try {
-    if (!validateOrigin(request, [process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'])) {
+    if (!validateOrigin(request, getAllowedOrigins())) {
       return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
     }
 

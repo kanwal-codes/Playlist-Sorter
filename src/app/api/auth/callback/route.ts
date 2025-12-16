@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { exchangeCodeForTokens } from '@/lib/spotify/auth'
 import { createOrUpdateUser } from '@/lib/db/queries'
 import { SpotifyClient } from '@/lib/spotify/client'
+import { getBaseUrl, getRedirectUri } from '@/lib/utils/url'
 
 export async function GET(request: Request) {
   try {
@@ -11,8 +12,8 @@ export async function GET(request: Request) {
     const state = searchParams.get('state')
     const error = searchParams.get('error')
 
-    // Get base URL for redirects
-    const baseUrl = new URL(request.url).origin
+    // Get base URL for redirects (works for both local and Vercel)
+    const baseUrl = getBaseUrl(request)
 
     if (error) {
       return NextResponse.redirect(
@@ -31,28 +32,37 @@ export async function GET(request: Request) {
     const cookieStore = cookies()
     const cookieState = cookieStore.get('oauth_state')?.value
     const cookieRedirect = cookieStore.get('oauth_redirect')?.value
-    const envRedirect = process.env.SPOTIFY_REDIRECT_URI
-    const redirectUri = cookieRedirect || envRedirect || `${baseUrl}/api/auth/callback`
+    
+    // Use redirect URI from cookie (set during auth initiation), env var, or auto-detect
+    // This ensures consistency between auth initiation and callback
+    const redirectUri = cookieRedirect || process.env.SPOTIFY_REDIRECT_URI || getRedirectUri(request)
     
     console.log(`🔄 OAuth callback received - state: ${state}, code: ${code ? 'present' : 'missing'}`)
     console.log(`🍪 Cookie state: ${cookieState || 'not found'}`)
     console.log(`🔗 Redirect URI in use: ${redirectUri}`)
     
-    // Verify state from memory store first
-    let stateValid = verifyAndRemoveState(state)
+    // Verify state - prioritize cookie in development (more reliable than in-memory store)
+    // In Next.js serverless, in-memory state may be lost between requests
+    let stateValid = false
     
-    // If memory store fails, check cookie (for development reliability)
-    if (!stateValid && cookieState === state) {
-      console.log(`✅ State verified from cookie (memory store was empty)`)
+    // Check cookie first (most reliable in development)
+    if (cookieState === state) {
+      console.log(`✅ State verified from cookie`)
       stateValid = true
-      // Clear the cookie
-      cookieStore.delete('oauth_state')
+      // Also try to remove from memory store if it exists
+      verifyAndRemoveState(state)
+    } else {
+      // Fallback to memory store (for production/serverful environments)
+      stateValid = verifyAndRemoveState(state)
+      if (stateValid) {
+        console.log(`✅ State verified from memory store`)
+      }
     }
     
     if (!stateValid) {
       console.error(`❌ State verification failed for: ${state}`)
+      console.error(`   Cookie state: ${cookieState || 'not found'}`)
       console.error(`   Memory store check: ${verifyAndRemoveState(state)}`)
-      console.error(`   Cookie check: ${cookieState === state}`)
       return NextResponse.redirect(
         `${baseUrl}/login?error=invalid_state`
       )

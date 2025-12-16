@@ -6,6 +6,7 @@ import { SpotifyClient } from '@/lib/spotify/client'
 import { validateSpotifyPlaylistId, validateRequestBodySize } from '@/lib/utils/validation'
 import { verifyPlaylistOwnership, sanitizeError, validateOrigin } from '@/lib/utils/security'
 import { checkRateLimit, getClientIdentifier } from '@/lib/utils/rate-limit'
+import { getAllowedOrigins } from '@/lib/utils/url'
 
 export async function PATCH(
   request: Request,
@@ -13,7 +14,7 @@ export async function PATCH(
 ) {
   try {
     // CSRF protection
-    if (!validateOrigin(request, [process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'])) {
+    if (!validateOrigin(request, getAllowedOrigins())) {
       return NextResponse.json(
         { error: 'Invalid origin' },
         { status: 403 }
