@@ -66,6 +66,9 @@ ALL_PLAYLIST_TRACKS.*
 DELETED_*
 prisma/dev.db
 
+# documentation files
+*.md
+
 
 
 
