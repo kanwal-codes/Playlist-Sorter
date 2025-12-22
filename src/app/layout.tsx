@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 import { PlaylistProvider } from '@/context/PlaylistContext'
@@ -28,6 +29,7 @@ export default function RootLayout({
             </div>
           </PlaylistProvider>
         </AuthProvider>
+        <SpeedInsights />
       </body>
     </html>
   )
